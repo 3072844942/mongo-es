@@ -1,7 +1,8 @@
-package org.self.strategy.enums;
+package org.self.enums;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import org.self.SyncConfig;
 
 /**
  * @author march
@@ -36,16 +37,15 @@ public enum SynchronizeModeEnum {
     /**
      * 获取策略
      *
-     * @param mode 模式
      * @return {@link String} 搜索策略
      */
-    public static String getStrategy(String mode) {
+    public static SynchronizeModeEnum getStrategy() {
         for (SynchronizeModeEnum value : SynchronizeModeEnum.values()) {
-            if (value.getMode().equals(mode)) {
-                return value.getStrategy();
+            if (value.getMode().equals(SyncConfig.mode)) {
+                return value;
             }
         }
-        return null;
+        return IS;
     }
 
 }
