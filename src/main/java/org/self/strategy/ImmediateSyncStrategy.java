@@ -27,12 +27,11 @@ public class ImmediateSyncStrategy {
         document.forEach((key, value) -> {
             if (key.equals("_id")) {
                 if (value.getClass().equals(ObjectId.class)) {
-                    m.put("id", ((ObjectId)value).toString());
+                    m.put("id", ((ObjectId) value).toString());
                 } else {
                     m.put("id", value.toString());
                 }
-            }
-            else if (!key.startsWith("_"))   {
+            } else if (!key.startsWith("_")) {
                 m.put(key, value);
             }
         });

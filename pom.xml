@@ -13,7 +13,7 @@
 
     <groupId>org.self</groupId>
     <artifactId>mongo-es</artifactId>
-    <version>1.3.4</version>
+    <version>1.4.1</version>
 
     <properties>
         <java.version>17</java.version>

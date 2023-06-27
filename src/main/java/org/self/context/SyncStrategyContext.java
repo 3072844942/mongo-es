@@ -23,23 +23,25 @@ import java.util.concurrent.ArrayBlockingQueue;
 @Service
 @Log4j2
 public class SyncStrategyContext {
-    private final ArrayBlockingQueue<ChangeStreamDocument<Document>> queue = new ArrayBlockingQueue<>((int) (SyncConfig.capacity * 1.1));
     @Autowired
     private ImmediateSyncStrategy is;
     @Autowired
     private AsyncDelayedSyncStrategy ads;
+    @Autowired
+    private SyncConfig syncConfig;
+    private ArrayBlockingQueue<ChangeStreamDocument<Document>> queue;
 
     public void submit(ChangeStreamDocument<Document> raw) throws InterruptedException {
         log.info("sync object id: " + raw.getDocumentKey());
-        if (SynchronizeModeEnum.getStrategy().equals(SynchronizeModeEnum.ADS)) { // 定量
+        if (SynchronizeModeEnum.getStrategy(syncConfig.getMode()).equals(SynchronizeModeEnum.ADS)) { // 定量
             queue.put(raw);
 
-            if (queue.size() >= SyncConfig.capacity) {
+            if (queue.size() >= syncConfig.getCapacity()) {
                 ArrayList<ChangeStreamDocument<Document>> arrayList = new ArrayList<>(queue.size() + 10);
                 queue.drainTo(arrayList);
                 ads.run(arrayList);
             }
-        } else if (SynchronizeModeEnum.getStrategy().equals(SynchronizeModeEnum.SS)) { // 定时
+        } else if (SynchronizeModeEnum.getStrategy(syncConfig.getMode()).equals(SynchronizeModeEnum.SS)) { // 定时
             queue.put(raw);
         } else { // 立即
             OperationType operationType = raw.getOperationType();
@@ -51,8 +53,8 @@ public class SyncStrategyContext {
 
                 is.delete(id, raw.getNamespace().getCollectionName());
             } else if (operationType.equals(OperationType.INSERT)
-                || operationType.equals(OperationType.REPLACE)
-                || operationType.equals(OperationType.UPDATE)
+                    || operationType.equals(OperationType.REPLACE)
+                    || operationType.equals(OperationType.UPDATE)
             ) {
                 is.save(raw.getFullDocument(), raw.getNamespace().getCollectionName());
             }
@@ -61,7 +63,8 @@ public class SyncStrategyContext {
 
     @PostConstruct
     private void init() {
-        if (SynchronizeModeEnum.getStrategy().equals(SynchronizeModeEnum.SS)) { // 定时
+        queue = new ArrayBlockingQueue<>((int) (syncConfig.getCapacity() * 1.1));
+        if (SynchronizeModeEnum.getStrategy(syncConfig.getMode()).equals(SynchronizeModeEnum.SS)) { // 定时
             // 开启另一个线程定时任务
             Thread thread = new Thread(() -> {
                 while (true) {
@@ -70,7 +73,7 @@ public class SyncStrategyContext {
                     ads.run(arrayList);
 
                     try {
-                        Thread.sleep(SyncConfig.timeout);
+                        Thread.sleep(syncConfig.getTimeout());
                     } catch (InterruptedException e) {
                         throw new RuntimeException(e);
                     }

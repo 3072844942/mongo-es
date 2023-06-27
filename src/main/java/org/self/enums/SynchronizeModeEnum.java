@@ -2,7 +2,6 @@ package org.self.enums;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import org.self.SyncConfig;
 
 /**
  * @author march
@@ -39,9 +38,9 @@ public enum SynchronizeModeEnum {
      *
      * @return {@link String} 搜索策略
      */
-    public static SynchronizeModeEnum getStrategy() {
+    public static SynchronizeModeEnum getStrategy(String mode) {
         for (SynchronizeModeEnum value : SynchronizeModeEnum.values()) {
-            if (value.getMode().equals(SyncConfig.mode)) {
+            if (value.getMode().equals(mode)) {
                 return value;
             }
         }

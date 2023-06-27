@@ -9,7 +9,6 @@ import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
 import org.springframework.data.elasticsearch.core.mapping.IndexCoordinates;
-import org.springframework.data.elasticsearch.core.query.IndexQuery;
 import org.springframework.data.elasticsearch.core.query.IndexQueryBuilder;
 import org.springframework.stereotype.Service;
 
@@ -39,7 +38,7 @@ public class AsyncDelayedSyncStrategy {
                     && op.equals(list.get(j).getOperationType())
                     && fullName.equals(list.get(j).getNamespace().getFullName())
             ) {
-                j ++;
+                j++;
             }
             List<ChangeStreamDocument<Document>> subList = list.subList(i, j);
 
@@ -65,12 +64,11 @@ public class AsyncDelayedSyncStrategy {
                             raw.getFullDocument().forEach((key, value) -> {
                                 if (key.equals("_id")) {
                                     if (value.getClass().equals(ObjectId.class)) {
-                                        m.put("id", ((ObjectId)value).toString());
+                                        m.put("id", ((ObjectId) value).toString());
                                     } else {
                                         m.put("id", value.toString());
                                     }
-                                }
-                                else if (!key.startsWith("_"))   {
+                                } else if (!key.startsWith("_")) {
                                     m.put(key, value);
                                 }
                             });
