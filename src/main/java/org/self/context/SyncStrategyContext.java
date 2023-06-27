@@ -21,7 +21,6 @@ import java.util.concurrent.ArrayBlockingQueue;
  * @since 2023/6/26 下午4:04
  */
 @Service
-@Log4j2
 public class SyncStrategyContext {
     @Autowired
     private ImmediateSyncStrategy is;
@@ -32,7 +31,6 @@ public class SyncStrategyContext {
     private ArrayBlockingQueue<ChangeStreamDocument<Document>> queue;
 
     public void submit(ChangeStreamDocument<Document> raw) throws InterruptedException {
-        log.info("sync object id: " + raw.getDocumentKey());
         if (SynchronizeModeEnum.getStrategy(syncConfig.getMode()).equals(SynchronizeModeEnum.ADS)) { // 定量
             queue.put(raw);
 
@@ -49,7 +47,7 @@ public class SyncStrategyContext {
                 BsonValue bsonValue = raw.getDocumentKey().get("_id");
                 String id;
                 if (bsonValue.isObjectId()) id = bsonValue.asObjectId().toString();
-                else id = bsonValue.toString();
+                else id = bsonValue.asString().getValue();
 
                 is.delete(id, raw.getNamespace().getCollectionName());
             } else if (operationType.equals(OperationType.INSERT)

@@ -52,3 +52,16 @@ spring:
 |  capacity   |   最大容量   | 1000 |
 |   timeout   | 时间间隔（ms） | 1000 |
 | collections |   同步集合   |  *   |
+
+#### 执行时刻
+
+|         机制	         |                    描述	                    |       适用对象        |            	执行顺序            |
+|:-------------------:|:-----------------------------------------:|:-----------------:|:---------------------------:|
+|  CommandLineRunner  |         	在应用程序启动时执行特定代码，可访问命令行参数	         | Spring Boot bean	 |     容器控制，通常在所有 bean 之后      |
+|  ApplicationRunner  |         	在应用程序启动时执行特定代码，可访问应用程序参数         | 	Spring Boot bean |     	容器控制，通常在所有 bean 之后     |
+|  InitializingBean   |         	在 bean 的属性设置完成后执行初始化逻辑	          |    Spring bean    | 	容器控制，通常在 @PostConstruct 之前 |
+|   DisposableBean	   |            在 bean 销毁之前执行清理逻辑	             |   Spring bean	    |        容器控制，通常在销毁之前         |
+|   @PostConstruct	   |   在 bean 的构造函数执行之后、依赖注入完成之后执行指定方法，用于初始化   |   	Spring bean    |    	不确定，只保证在 bean 初始化完成后    |
+|    @PreDestroy	     |         在 bean 销毁之前执行指定方法，用于清理资源	         |    Spring bean    |        	不确定，只保证在销毁之前        |
+|   SmartLifecycle	   | 在容器启动和关闭过程中执行特定逻辑，可以控制启动和停止的顺序，支持懒加载和自动启动 |   	Spring bean    |    	容器控制，可根据 phase 控制顺序     |
+| ApplicationListener |             	监听应用程序事件并执行相应的逻辑             |   	Spring bean    |       	容器控制，根据事件触发顺序        |

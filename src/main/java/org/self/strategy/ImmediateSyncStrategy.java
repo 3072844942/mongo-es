@@ -1,5 +1,6 @@
 package org.self.strategy;
 
+import lombok.extern.log4j.Log4j2;
 import org.bson.Document;
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,6 +17,7 @@ import java.util.Map;
  * @author march
  * @since 2023/6/21 上午11:12
  */
+@Log4j2
 @Service
 public class ImmediateSyncStrategy {
     @Autowired
@@ -38,10 +40,12 @@ public class ImmediateSyncStrategy {
 
         elasticsearchOperations.save(org.springframework.data.elasticsearch.core.document.Document.from(m),
                 IndexCoordinates.of(annotation));
+        log.info("sync object: " + m);
     }
 
 
     public void delete(String id, String collectionName) {
         elasticsearchOperations.delete(id, IndexCoordinates.of(collectionName));
+        log.info("sync delete: " + id);
     }
 }

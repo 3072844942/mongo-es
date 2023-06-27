@@ -47,7 +47,7 @@ public class AsyncDelayedSyncStrategy {
                     BsonValue bsonValue = raw.getDocumentKey().get("_id");
                     String id;
                     if (bsonValue.isObjectId()) id = bsonValue.asObjectId().toString();
-                    else id = bsonValue.toString();
+                    else id = bsonValue.asString().getValue();
 
                     elasticsearchOperations.delete(id, IndexCoordinates.of(raw.getNamespace().getCollectionName()));
                 });
@@ -57,7 +57,7 @@ public class AsyncDelayedSyncStrategy {
                             BsonValue bsonValue = raw.getDocumentKey().get("_id");
                             String id;
                             if (bsonValue.isObjectId()) id = bsonValue.asObjectId().toString();
-                            else id = bsonValue.toString();
+                            else id = bsonValue.asString().getValue();
 
                             // 隐去_class, _id
                             Map<String, Object> m = new HashMap<>();
