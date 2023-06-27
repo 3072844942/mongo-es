@@ -19,7 +19,6 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Log4j2
 @Component
 @EnableConfigurationProperties(SyncConfig.class)
 @ConfigurationProperties(prefix = "spring.mes")
@@ -47,11 +46,4 @@ public class SyncConfig {
      */
     @Value("${spring.mes.timeout:1000}")
     private long timeout;
-
-    @PostConstruct
-    public void init() {
-        log.info("数据开始同步...");
-        log.info("同步类型: " + mode);
-        log.info("同步集合: " + collections);
-    }
 }

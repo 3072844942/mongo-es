@@ -21,6 +21,7 @@ import java.util.concurrent.ArrayBlockingQueue;
  * @since 2023/6/26 下午4:04
  */
 @Service
+@Log4j2
 public class SyncStrategyContext {
     @Autowired
     private ImmediateSyncStrategy is;
@@ -78,6 +79,16 @@ public class SyncStrategyContext {
                 }
             });
             thread.start();
+        }
+
+        log.info("数据开始同步...");
+        log.info("同步类型: " + syncConfig.getMode());
+        log.info("同步集合: " + syncConfig.getCollections());
+        if (SynchronizeModeEnum.getStrategy(syncConfig.getMode()).equals(SynchronizeModeEnum.SS)) {
+            log.info("同步间隔: " + syncConfig.getTimeout() + "ms");
+        }
+        if (SynchronizeModeEnum.getStrategy(syncConfig.getMode()).equals(SynchronizeModeEnum.ADS)) {
+            log.info("同步数量: " + syncConfig.getTimeout());
         }
     }
 }
