@@ -10,7 +10,6 @@ import org.self.SyncConfig;
 import org.self.enums.SynchronizeModeEnum;
 import org.self.strategy.AsyncDelayedSyncStrategy;
 import org.self.strategy.ImmediateSyncStrategy;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -23,13 +22,17 @@ import java.util.concurrent.ArrayBlockingQueue;
 @Service
 @Log4j2
 public class SyncStrategyContext {
-    @Autowired
-    private ImmediateSyncStrategy is;
-    @Autowired
-    private AsyncDelayedSyncStrategy ads;
-    @Autowired
-    private SyncConfig syncConfig;
-    private ArrayBlockingQueue<ChangeStreamDocument<Document>> queue;
+    private final ImmediateSyncStrategy is;
+    private final AsyncDelayedSyncStrategy ads;
+    private final SyncConfig syncConfig;
+    private final ArrayBlockingQueue<ChangeStreamDocument<Document>> queue;
+
+    public SyncStrategyContext(ImmediateSyncStrategy is, AsyncDelayedSyncStrategy ads, SyncConfig syncConfig) {
+        this.is = is;
+        this.ads = ads;
+        this.syncConfig = syncConfig;
+        this.queue = new ArrayBlockingQueue<>((int) (syncConfig.getCapacity() * 1.1));
+    }
 
     public void submit(ChangeStreamDocument<Document> raw) throws InterruptedException {
         if (SynchronizeModeEnum.getStrategy(syncConfig.getMode()).equals(SynchronizeModeEnum.ADS)) { // 定量
@@ -62,7 +65,6 @@ public class SyncStrategyContext {
 
     @PostConstruct
     private void init() {
-        queue = new ArrayBlockingQueue<>((int) (syncConfig.getCapacity() * 1.1));
         if (SynchronizeModeEnum.getStrategy(syncConfig.getMode()).equals(SynchronizeModeEnum.SS)) { // 定时
             // 开启另一个线程定时任务
             Thread thread = new Thread(() -> {
@@ -81,14 +83,13 @@ public class SyncStrategyContext {
             thread.start();
         }
 
-        log.info("数据开始同步...");
-        log.info("同步类型: " + syncConfig.getMode());
-        log.info("同步集合: " + syncConfig.getCollections());
+        log.info("Preparing for data synchronization...");
+        log.info("Sync type: " + syncConfig.getMode());
         if (SynchronizeModeEnum.getStrategy(syncConfig.getMode()).equals(SynchronizeModeEnum.SS)) {
-            log.info("同步间隔: " + syncConfig.getTimeout() + "ms");
+            log.info("Sync interval: " + syncConfig.getTimeout() + "ms");
         }
         if (SynchronizeModeEnum.getStrategy(syncConfig.getMode()).equals(SynchronizeModeEnum.ADS)) {
-            log.info("同步数量: " + syncConfig.getTimeout());
+            log.info("Sync number:" + syncConfig.getTimeout());
         }
     }
 }

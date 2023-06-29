@@ -4,7 +4,20 @@
 自动化同步MongoDB到ElasticSearch
 
 ### 使用方法
-1. 书写配置类， MongoMessageListener, MessageListenerContainer可被重写， 当然也可以使用默认
+1. 加入mvn
+```shell
+mvn install
+```
+2. 导入依赖
+```xml
+<!-- https://github.com/3072844942/mongo-es -->
+<dependency>
+    <groupId>org.self</groupId>
+    <artifactId>mongo-es</artifactId>
+    <version>版本号</version>
+</dependency>
+```
+3. 书写配置类， MongoMessageListener, MessageListenerContainer可被重写， 当然也可以使用默认
 ```java
 @Configuration
 @ComponentScan("org.self")
@@ -22,11 +35,10 @@ public class MongoESConfig implements CommandLineRunner {
     }
 }
 ```
-2. 书写配置文件
+4. 书写配置文件
 ```yaml
 spring:
   mes:
-    collections: example.collection1,example.collection2
     mode: IS
     capacity: 10000
     timeout: 1000

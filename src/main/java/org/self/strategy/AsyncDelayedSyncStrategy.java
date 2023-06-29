@@ -3,12 +3,14 @@ package org.self.strategy;
 import com.mongodb.MongoNamespace;
 import com.mongodb.client.model.changestream.ChangeStreamDocument;
 import com.mongodb.client.model.changestream.OperationType;
+import lombok.extern.log4j.Log4j2;
 import org.bson.BsonValue;
 import org.bson.Document;
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
 import org.springframework.data.elasticsearch.core.mapping.IndexCoordinates;
+import org.springframework.data.elasticsearch.core.query.IndexQuery;
 import org.springframework.data.elasticsearch.core.query.IndexQueryBuilder;
 import org.springframework.stereotype.Service;
 
@@ -22,10 +24,14 @@ import java.util.Map;
  * @author march
  * @since 2023/6/21 上午11:12
  */
+@Log4j2
 @Service
 public class AsyncDelayedSyncStrategy {
-    @Autowired
-    private ElasticsearchOperations elasticsearchOperations;
+    private final ElasticsearchOperations elasticsearchOperations;
+
+    public AsyncDelayedSyncStrategy(ElasticsearchOperations elasticsearchOperations) {
+        this.elasticsearchOperations = elasticsearchOperations;
+    }
 
     public void run(List<ChangeStreamDocument<Document>> list) {
         // 分批进行操作
@@ -52,35 +58,38 @@ public class AsyncDelayedSyncStrategy {
                     elasticsearchOperations.delete(id, IndexCoordinates.of(raw.getNamespace().getCollectionName()));
                 });
             } else if (op.equals(OperationType.INSERT)) {
+                List<IndexQuery> indexQueryList = subList.stream().map(raw -> {
+                    BsonValue bsonValue = raw.getDocumentKey().get("_id");
+                    String id;
+                    if (bsonValue.isObjectId()) id = bsonValue.asObjectId().toString();
+                    else id = bsonValue.asString().getValue();
+
+                    // 隐去_class, _id
+                    Map<String, Object> m = new HashMap<>();
+                    raw.getFullDocument().forEach((key, value) -> {
+                        if (key.equals("_id")) {
+                            if (value.getClass().equals(ObjectId.class)) {
+                                m.put("id", ((ObjectId) value).toString());
+                            } else {
+                                m.put("id", value.toString());
+                            }
+                        } else if (!key.startsWith("_")) {
+                            m.put(key, value);
+                        }
+                    });
+
+                    return new IndexQueryBuilder()
+                            .withId(id)
+                            .withIndex(namespace.getCollectionName())
+                            .withObject(m)
+                            .build();
+                }).toList();
+
                 elasticsearchOperations.bulkIndex(
-                        subList.stream().map(raw -> {
-                            BsonValue bsonValue = raw.getDocumentKey().get("_id");
-                            String id;
-                            if (bsonValue.isObjectId()) id = bsonValue.asObjectId().toString();
-                            else id = bsonValue.asString().getValue();
-
-                            // 隐去_class, _id
-                            Map<String, Object> m = new HashMap<>();
-                            raw.getFullDocument().forEach((key, value) -> {
-                                if (key.equals("_id")) {
-                                    if (value.getClass().equals(ObjectId.class)) {
-                                        m.put("id", ((ObjectId) value).toString());
-                                    } else {
-                                        m.put("id", value.toString());
-                                    }
-                                } else if (!key.startsWith("_")) {
-                                    m.put(key, value);
-                                }
-                            });
-
-                            return new IndexQueryBuilder()
-                                    .withId(id)
-                                    .withIndex(namespace.getCollectionName())
-                                    .withObject(m)
-                                    .build();
-                        }).toList()
+                        indexQueryList
                         , IndexCoordinates.of(namespace.getCollectionName())
                 );
+                log.info("Sync Objects: " + indexQueryList);
             }
         }
     }

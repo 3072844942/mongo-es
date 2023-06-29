@@ -1,16 +1,12 @@
 package org.self;
 
-import jakarta.annotation.PostConstruct;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.stereotype.Component;
-
-import java.util.List;
 
 /**
  * @author march
@@ -28,12 +24,6 @@ public class SyncConfig {
      */
     @Value("${spring.mes.mode:IS}")
     private String mode;
-
-    /**
-     * 同步的数据库
-     */
-    @Value("${spring.mes.collections:*}")
-    private List<String> collections;
 
     /**
      * ads模式下 容量限制

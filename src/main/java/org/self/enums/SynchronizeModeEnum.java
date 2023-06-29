@@ -4,6 +4,8 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 /**
+ * 同步策略枚举
+ *
  * @author march
  * @since 2023/6/21 上午11:17
  */

@@ -1,9 +1,9 @@
 package org.self;
 
 import com.mongodb.client.model.changestream.ChangeStreamDocument;
+import lombok.extern.log4j.Log4j2;
 import org.bson.Document;
 import org.self.context.SyncStrategyContext;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.messaging.DefaultMessageListenerContainer;
@@ -17,12 +17,14 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
+@Log4j2
 @Component
 public class MongoMessageListener implements MessageListener<ChangeStreamDocument<Document>, Object> {
-    @Autowired
-    private SyncStrategyContext strategyContext;
-    @Autowired
-    private SyncConfig syncConfig;
+    private final SyncStrategyContext strategyContext;
+
+    public MongoMessageListener(SyncStrategyContext strategyContext) {
+        this.strategyContext = strategyContext;
+    }
 
     @Bean
     MessageListenerContainer messageListenerContainer(MongoTemplate mongoTemplate) {
@@ -39,9 +41,7 @@ public class MongoMessageListener implements MessageListener<ChangeStreamDocumen
         ChangeStreamDocument<Document> raw = message.getRaw();
 
         // 如果需要同步当前表
-        if (syncConfig.getCollections().contains("*")
-                || syncConfig.getCollections().contains(raw.getNamespace().getDatabaseName() + ".*")
-                || syncConfig.getCollections().contains(raw.getNamespace().getFullName())) {
+        if (CollectionScanner.collections.contains(raw.getNamespace().getCollectionName())) {
             try {
                 strategyContext.submit(raw);
             } catch (InterruptedException e) {

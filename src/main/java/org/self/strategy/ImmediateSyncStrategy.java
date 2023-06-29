@@ -20,8 +20,11 @@ import java.util.Map;
 @Log4j2
 @Service
 public class ImmediateSyncStrategy {
-    @Autowired
-    private ElasticsearchOperations elasticsearchOperations;
+    private final ElasticsearchOperations elasticsearchOperations;
+
+    public ImmediateSyncStrategy(ElasticsearchOperations elasticsearchOperations) {
+        this.elasticsearchOperations = elasticsearchOperations;
+    }
 
     public void save(Document document, String annotation) {
         // 隐去_class, _id
